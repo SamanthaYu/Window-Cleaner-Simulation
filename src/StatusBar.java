@@ -10,7 +10,7 @@ public class StatusBar {
 	
 	public StatusBar(WindowCleaner winCleaner) {
 		sbarWidth = 250;
-		sbarColor = new Color(184,123,78);
+		sbarColor = new Color(222,242,206);
 		
 		sbarImage = new BufferedImage(winCleaner.getAppWidth(), winCleaner.getAppHeight(), BufferedImage.TYPE_INT_ARGB);
 		g2sbar = (Graphics2D) sbarImage.getGraphics();

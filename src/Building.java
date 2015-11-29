@@ -10,7 +10,7 @@ public class Building {
 	private Color dirtyWinColor, cleanWinColor, paneColor;
 	
 	private int buildingStartX, buildingStartY, buildingWidth, buildingHeight;
-	private int winStartX, winStartY, winWidth, winHeight, paneWidth;
+	private int winStartX, winStartY, winWidth, winHeight, paneWidth, numWinX;
 	
 	public Building(WindowCleaner winCleaner, StatusBar sbar) {
 		setBdimensions(winCleaner, sbar);
@@ -29,6 +29,7 @@ public class Building {
 		buildingHeight = winCleaner.getAppHeight() - buildingStartY;
 		
 		paneWidth = 1;
+		numWinX = 0;
 		
 		winStartX = buildingStartX;
 		winStartY = buildingStartY;
@@ -43,6 +44,8 @@ public class Building {
 	
 	private void createBuilding() {
 		do {
+			numWinX += 1;
+			System.out.println("numWinX: " + numWinX);
 			do {
 				createWindow(false, winStartX, winStartY);
 				winStartY += winHeight + paneWidth;
@@ -88,10 +91,18 @@ public class Building {
 	}
 	
 	public int getWindowWidth() {
-		return winWidth;
+		return winWidth + 2*paneWidth;
 	}
 	
 	public int getWindowHeight() {
 		return winHeight;
+	}
+	
+	public int getPaneWidth() {
+		return paneWidth;
+	}
+	
+	public int getNumWinX() {
+		return numWinX;
 	}
 }

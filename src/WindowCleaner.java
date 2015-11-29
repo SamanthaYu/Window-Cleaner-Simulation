@@ -36,9 +36,9 @@ public class WindowCleaner extends Frame implements WindowListener {
 	private WaterTank wtank;
 	private StatusBar sbar;
 	
-	private int wcWidth, wcHeight, wcStartX, wcStartY, delay, nextWCstartX;
+	private int wcWidth, wcHeight, wcStartX, wcStartY, delay, nextWCstartX, currentWinX;
 	private Color wcColor;
-	private boolean moveDown, moveRight;
+	private boolean moveUp, moveDown, moveLeft, moveRight;
 	
 	public static void main(String args[]) {
 		 WindowCleaner winCleaner = new WindowCleaner();
@@ -66,7 +66,7 @@ public class WindowCleaner extends Frame implements WindowListener {
 		wpump = new WaterPump(winCleaner);
 		wtank = new WaterTank(winCleaner);
 		
-		wcStartX = building.getBuildingStartX() + scups.getArmsLength() + scups.getSCupsDiameter();
+		wcStartX = building.getBuildingStartX() + 2*building.getPaneWidth() + scups.getArmsLength() + scups.getSCupsDiameter();
 		wcStartY = building.getBuildingStartY();
 			
 		createWinFrame();
@@ -75,23 +75,37 @@ public class WindowCleaner extends Frame implements WindowListener {
 	public void wcMove() {
 		delay = 200;
 		moveDown = true;
+		moveUp = false;
 		moveRight = false;
+		moveLeft = false;
+		currentWinX = 1;
 		
 		do {
-			if (moveRight) {
+			System.out.println("currentWinX: " + currentWinX);
+			if (moveUp) {
+				wcMoveUp();
+				moveUp = false;
+				moveRight = true;
+				currentWinX += 1;
+			}
+			else if (moveDown) {
+				wcMoveDown();
+				moveDown = false;
+				moveUp = true;
+			}
+			else if (moveRight) {
 				wcMoveRight();
 				moveRight = false;
-				moveDown = false;
-			}
-			
-			if (moveDown) {
-				wcMoveDown();
-				moveRight = true;
-			} else {
-				wcMoveUp();
 				moveDown = true;
 			}
-		} while(getWCstartX() + building.getWindowWidth()/4 <= building.getBuildingWidth());
+		} while(currentWinX <= building.getNumWinX());
+		
+		moveLeft = true;
+		
+		if (moveLeft) {
+			wcMoveLeft();
+			moveLeft = false;
+		}
 	}
 	
 	private void wcMoveDown() {
@@ -99,18 +113,11 @@ public class WindowCleaner extends Frame implements WindowListener {
 			g2winCleaner.setBackground(new Color(255, 255, 255, 0));
 			g2winCleaner.clearRect(0, 0, getAppWidth(), getAppHeight());
 			
-			wcStartY = getWCstartY() + getWCheight()/2;
+			wcStartY = getWCstartY() + getWCheight();
 			drawWinFrame();
-			
-			try {
-				Thread.sleep(delay);
-				System.out.println("time");
-			} catch (InterruptedException ie) {
-				System.out.println("Timer was interrupted");
-			}
-			
+
 			repaint();
-		} while (getWCstartY() <= building.getBuildingHeight());
+		} while (getWCstartY() + getWCheight() < getAppHeight() - getWCheight());
 	}
 	
 	private void wcMoveUp() {
@@ -118,20 +125,25 @@ public class WindowCleaner extends Frame implements WindowListener {
 			g2winCleaner.setBackground(new Color(255, 255, 255, 0));
 			g2winCleaner.clearRect(0, 0, getAppWidth(), getAppHeight());
 			
-			wcStartY = getWCstartY() - getWCheight()/2;
+			wcStartY = getWCstartY() - getWCheight();
 			drawWinFrame();
 			
-			try {
-				Thread.sleep(delay);
-				System.out.println("time");
-			} catch (InterruptedException ie) {
-				System.out.println("Timer was interrupted");
-			}
-			
 			repaint();
-		} while (getWCstartY() - getWCheight()/2 >= building.getBuildingStartY());
+		} while (getWCstartY() - getWCheight() >= building.getBuildingStartY());
 	}
 	
+	private void wcMoveLeft() {
+		do {
+			g2winCleaner.setBackground(new Color(255, 255, 255, 0));
+			g2winCleaner.clearRect(0, 0, getAppWidth(), getAppHeight());
+			
+			wcStartX = getWCstartX() - building.getWindowWidth()/2;
+			drawWinFrame();
+			
+			repaint();
+		} while (getWCstartX() - building.getWindowWidth()/2 > building.getBuildingStartX());
+	}
+
 	private void wcMoveRight() {
 		nextWCstartX = getWCstartX() + building.getWindowWidth();
 		
@@ -141,14 +153,7 @@ public class WindowCleaner extends Frame implements WindowListener {
 			
 			wcStartX = getWCstartX() + building.getWindowWidth()/4;
 			drawWinFrame();
-			
-			try {
-				Thread.sleep(delay);
-				System.out.println("time");
-			} catch (InterruptedException ie) {
-				System.out.println("Timer was interrupted");
-			}
-			
+
 			repaint();
 		} while (getWCstartX() + building.getWindowWidth()/4 <= nextWCstartX);
 	}
@@ -164,12 +169,18 @@ public class WindowCleaner extends Frame implements WindowListener {
 	private void setWCdimensions() {
 		wcColor = new Color(3);
 		wcWidth = building.getWindowWidth() - 2*(scups.getArmsLength() + scups.getSCupsDiameter());
-		wcHeight = 40;
+		wcHeight = 62;
 	}
 	
 	private void drawWinFrame() {
 		g2winCleaner.setColor(wcColor);
 		g2winCleaner.fillRect(getWCstartX(), getWCstartY(), wcWidth, wcHeight);
+		
+		try {
+			Thread.sleep(delay);
+		} catch (InterruptedException ie) {
+			System.out.println("Timer was interrupted");
+		}
 	}
 	
 	public void createImageArray() {
@@ -207,6 +218,10 @@ public class WindowCleaner extends Frame implements WindowListener {
 		return wcHeight;
 	}
 	
+	public int getCurrentWinX() {
+		return currentWinX;
+	}
+	
 	public void windowClosing(WindowEvent e) {
         dispose();
         System.exit(0); // Normal exit of program
@@ -221,8 +236,18 @@ public class WindowCleaner extends Frame implements WindowListener {
     public void windowActivated(WindowEvent e){}
     public void windowDeactivated(WindowEvent e){}
 	
+    private void resetBuffer() {
+    	if (g2winCleaner != null) {
+    		g2winCleaner.dispose();
+    		g2winCleaner=null;
+    	}
+    	if (wcImage != null) {
+    		wcImage.flush();
+    		wcImage = null;
+    	}
+    }
+    
 	public void paint(Graphics g) {
-		System.out.println("hi");
 		g2Frame = (Graphics2D) g;
 		g2Frame.drawImage(building.getBuildingImage(), 0, 0, this);
 		g2Frame.drawImage(wcImage, 0, 0, this);
