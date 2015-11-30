@@ -14,11 +14,6 @@ public class Building {
 	
 	public Building(WindowCleaner winCleaner, StatusBar sbar) {
 		setBdimensions(winCleaner, sbar);
-		
-		buildingImage = new BufferedImage(winCleaner.getAppWidth(), winCleaner.getAppHeight(), BufferedImage.TYPE_INT_ARGB);
-		g2building = (Graphics2D) buildingImage.getGraphics();
-		
-		createBuilding();
 	}
 	
 	private void setBdimensions(WindowCleaner winCleaner, StatusBar sbar) {
@@ -42,12 +37,12 @@ public class Building {
 		paneColor = new Color(179,176,174);
 	}
 	
-	private void createBuilding() {
+	public void createBuilding(Graphics2D g2) {
 		do {
 			numWinX += 1;
 			System.out.println("numWinX: " + numWinX);
 			do {
-				createWindow(false, winStartX, winStartY);
+				createWindow(g2, false, winStartX, winStartY);
 				winStartY += winHeight + paneWidth;
 			} while (winStartY <= buildingHeight);
 			
@@ -56,18 +51,18 @@ public class Building {
 		} while (winStartX <= buildingWidth);
 	}
 	
-	private void createWindow(Boolean clean, int winStartX, int winStartY) {
+	private void createWindow(Graphics2D g2, Boolean clean, int winStartX, int winStartY) {
 		if (clean) {
-			g2building.setColor(cleanWinColor);
+			g2.setColor(cleanWinColor);
 		} else {
-			g2building.setColor(dirtyWinColor);
+			g2.setColor(dirtyWinColor);
 		}
 		
-		g2building.fillRect(winStartX, winStartY, winWidth, winHeight);
+		g2.fillRect(winStartX, winStartY, winWidth, winHeight);
 		
-		g2building.setColor(paneColor);
-		g2building.setStroke(new BasicStroke(paneWidth));
-		g2building.drawRect(winStartX, winStartY, winWidth, winHeight);
+		g2.setColor(paneColor);
+		g2.setStroke(new BasicStroke(paneWidth));
+		g2.drawRect(winStartX, winStartY, winWidth, winHeight);
 	}
 	
 	public BufferedImage getBuildingImage() {

@@ -16,13 +16,16 @@ import java.awt.AlphaComposite;
 import java.util.ArrayList;
 import java.lang.Thread;
 
-public class WindowCleaner extends Frame implements WindowListener {
+import java.awt.image.BufferStrategy;
+import javax.swing.JFrame;
+import java.awt.Toolkit;
+
+public class WindowCleaner extends JFrame {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	private Graphics2D g2Frame; 
-	private static ArrayList<BufferedImage> layerArray;
 	private int appWidth, appHeight;
 	
 	private BufferedImage wcImage;
@@ -36,27 +39,27 @@ public class WindowCleaner extends Frame implements WindowListener {
 	private WaterTank wtank;
 	private StatusBar sbar;
 	
-	private int wcWidth, wcHeight, wcStartX, wcStartY, delay, nextWCstartX, currentWinX;
+	private int wcWidth, wcHeight, wcStartX, wcStartY, nextWCstartX, currentWinX, displacement;
 	private Color wcColor;
-	private boolean moveUp, moveDown, moveLeft, moveRight;
+	private boolean moveUp, moveDown, moveLeft, moveRight, firstMoveRight;
 	
 	public static void main(String args[]) {
-		 WindowCleaner winCleaner = new WindowCleaner();
-		 winCleaner.addWindowListener(winCleaner);
-		 winCleaner.createWinCleaner(winCleaner);
-		 winCleaner.createImageArray();
-		 winCleaner.setVisible(true);
-		 
-		 winCleaner.wcMove();
+		WindowCleaner winCleaner = new WindowCleaner();
+		winCleaner.createWinCleaner(winCleaner);
+		winCleaner.setWCdimensions();
+		winCleaner.drawWinCleaner();
 	}
 	
 	public WindowCleaner() {
 		appWidth = 1366;
 		appHeight = 725;
-		setSize(appWidth, appHeight);
+		this.setSize(appWidth, appHeight);
+		this.setVisible(true);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.createBufferStrategy(2);
 	}
 	
-	public void createWinCleaner(WindowCleaner winCleaner) {
+	private void createWinCleaner(WindowCleaner winCleaner) {
 		sbar = new StatusBar(winCleaner);
 		
 		building = new Building(winCleaner, sbar);
@@ -68,130 +71,115 @@ public class WindowCleaner extends Frame implements WindowListener {
 		
 		wcStartX = building.getBuildingStartX() + 2*building.getPaneWidth() + scups.getArmsLength() + scups.getSCupsDiameter();
 		wcStartY = building.getBuildingStartY();
-			
-		createWinFrame();
 	}
 	
-	public void wcMove() {
-		delay = 200;
-		moveDown = true;
-		moveUp = false;
-		moveRight = false;
-		moveLeft = false;
-		currentWinX = 1;
-		
-		do {
-			System.out.println("currentWinX: " + currentWinX);
-			if (moveUp) {
-				wcMoveUp();
+	private void wcMove() {
+		System.out.println("currentWinX: " + currentWinX);
+		if (moveUp) {
+			wcMoveUp();
+			if (getWCstartY() - displacement < building.getBuildingStartY()) {
 				moveUp = false;
 				moveRight = true;
+				firstMoveRight = true;
 				currentWinX += 1;
 			}
-			else if (moveDown) {
-				wcMoveDown();
+		}
+		else if (moveDown) {
+			wcMoveDown();
+			
+			if (getWCstartY() + displacement >= getAppHeight() - getWCheight()) {
 				moveDown = false;
 				moveUp = true;
 			}
-			else if (moveRight) {
-				wcMoveRight();
+		}
+		else if (moveRight) {
+			wcMoveRight();
+			
+			if (firstMoveRight) {
+				nextWCstartX = getWCstartX() + building.getWindowWidth();
+				firstMoveRight = false;
+			}
+			
+			if (getWCstartX() + displacement > nextWCstartX) {
 				moveRight = false;
 				moveDown = true;
 			}
-		} while(currentWinX <= building.getNumWinX());
-		
-		moveLeft = true;
-		
-		if (moveLeft) {
+		}
+		else if (moveLeft) {
 			wcMoveLeft();
-			moveLeft = false;
+			
+			if (getWCstartX() - building.getWindowWidth()/2 <= building.getBuildingStartX()) {
+				moveLeft = false;
+			}
 		}
 	}
 	
 	private void wcMoveDown() {
-		do {
-			g2winCleaner.setBackground(new Color(255, 255, 255, 0));
-			g2winCleaner.clearRect(0, 0, getAppWidth(), getAppHeight());
-			
-			wcStartY = getWCstartY() + getWCheight();
-			drawWinFrame();
-
-			repaint();
-		} while (getWCstartY() + getWCheight() < getAppHeight() - getWCheight());
+		wcStartY = getWCstartY() + displacement;
 	}
 	
 	private void wcMoveUp() {
-		do {
-			g2winCleaner.setBackground(new Color(255, 255, 255, 0));
-			g2winCleaner.clearRect(0, 0, getAppWidth(), getAppHeight());
-			
-			wcStartY = getWCstartY() - getWCheight();
-			drawWinFrame();
-			
-			repaint();
-		} while (getWCstartY() - getWCheight() >= building.getBuildingStartY());
+		wcStartY = getWCstartY() - displacement;
 	}
 	
 	private void wcMoveLeft() {
-		do {
-			g2winCleaner.setBackground(new Color(255, 255, 255, 0));
-			g2winCleaner.clearRect(0, 0, getAppWidth(), getAppHeight());
-			
-			wcStartX = getWCstartX() - building.getWindowWidth()/2;
-			drawWinFrame();
-			
-			repaint();
-		} while (getWCstartX() - building.getWindowWidth()/2 > building.getBuildingStartX());
+		wcStartX = getWCstartX() - displacement;
 	}
 
 	private void wcMoveRight() {
-		nextWCstartX = getWCstartX() + building.getWindowWidth();
-		
-		do {
-			g2winCleaner.setBackground(new Color(255, 255, 255, 0));
-			g2winCleaner.clearRect(0, 0, getAppWidth(), getAppHeight());
-			
-			wcStartX = getWCstartX() + building.getWindowWidth()/4;
-			drawWinFrame();
-
-			repaint();
-		} while (getWCstartX() + building.getWindowWidth()/4 <= nextWCstartX);
+		wcStartX = getWCstartX() + displacement;
 	}
 	
-	private void createWinFrame() {
-		wcImage = new BufferedImage(getAppWidth(), getAppHeight(), BufferedImage.TYPE_INT_ARGB);
-		g2winCleaner = (Graphics2D) wcImage.getGraphics();
-		
-		setWCdimensions();
-		drawWinFrame();
+	private void drawWinCleaner() {
+		do {
+			do {
+				BufferStrategy bf = this.getBufferStrategy();
+				Graphics2D g2 = null;
+				
+				try {
+					g2 = (Graphics2D) bf.getDrawGraphics();
+					
+					this.wcMove();
+					this.drawWinFrame(g2);
+				}
+				finally {
+					g2.dispose();	// It is best to dispose() a Graphics object when done with it.
+				}
+			 
+				bf.show();	// Shows the contents of the backbuffer on the screen.
+		 
+		        Toolkit.getDefaultToolkit().sync();	//Tell the System to do the Drawing now, otherwise it can take a few extra ms until drawing is done which looks very jerky
+			} while (currentWinX <= building.getNumWinX());
+			
+			moveDown = false;
+			moveRight = false;
+			moveUp = false;
+		} while (moveLeft);
 	}
 	
 	private void setWCdimensions() {
 		wcColor = new Color(3);
 		wcWidth = building.getWindowWidth() - 2*(scups.getArmsLength() + scups.getSCupsDiameter());
 		wcHeight = 62;
-	}
-	
-	private void drawWinFrame() {
-		g2winCleaner.setColor(wcColor);
-		g2winCleaner.fillRect(getWCstartX(), getWCstartY(), wcWidth, wcHeight);
+		displacement = 1;
 		
-		try {
-			Thread.sleep(delay);
-		} catch (InterruptedException ie) {
-			System.out.println("Timer was interrupted");
-		}
+		moveDown = true;
+		moveUp = false;
+		moveRight = false;
+		moveLeft = true;
+		firstMoveRight = false;
+		currentWinX = 1;
 	}
 	
-	public void createImageArray() {
-		layerArray = new ArrayList<BufferedImage>();
-		layerArray.add(building.getBuildingImage());
-		layerArray.add(cspray.getCSprayImage());
-		layerArray.add(dolly.getDollyImage());
-		layerArray.add(scups.getSCupsImage());
-		layerArray.add(wpump.getWPumpImage());
-		layerArray.add(wtank.getWTankImage());
-		layerArray.add(sbar.getSBarImage());
+	private void drawWinFrame(Graphics2D g2) {
+		g2.setBackground(new Color(255, 255, 255, 0));
+		g2.clearRect(0, 0, getAppWidth(), getAppHeight());
+		
+		building.createBuilding(g2);	// If you delete this line, the window cleaner remains stationary
+			// However, the building is not drawn in the background
+			// Something about BufferStrategy is not used for transparency
+		g2.setColor(wcColor);
+		g2.fillRect(getWCstartX(), getWCstartY(), wcWidth, wcHeight);
 	}
 	
 	public int getAppWidth() {
@@ -220,41 +208,5 @@ public class WindowCleaner extends Frame implements WindowListener {
 	
 	public int getCurrentWinX() {
 		return currentWinX;
-	}
-	
-	public void windowClosing(WindowEvent e) {
-        dispose();
-        System.exit(0); // Normal exit of program
-    }
-	
-	 // These window events are required to be implemented, because this class implements the WindowListener
-    // However, this window cleaner simulation does not need these window events so these methods are left blank
-    public void windowOpened(WindowEvent e){}
-    public void windowIconified(WindowEvent e){}
-    public void windowClosed(WindowEvent e){}
-    public void windowDeiconified(WindowEvent e){}
-    public void windowActivated(WindowEvent e){}
-    public void windowDeactivated(WindowEvent e){}
-	
-    private void resetBuffer() {
-    	if (g2winCleaner != null) {
-    		g2winCleaner.dispose();
-    		g2winCleaner=null;
-    	}
-    	if (wcImage != null) {
-    		wcImage.flush();
-    		wcImage = null;
-    	}
-    }
-    
-	public void paint(Graphics g) {
-		g2Frame = (Graphics2D) g;
-		g2Frame.drawImage(building.getBuildingImage(), 0, 0, this);
-		g2Frame.drawImage(wcImage, 0, 0, this);
-		g2Frame.drawImage(sbar.getSBarImage(), 0, 0, this);
-	}
-	 
-	public void update(Graphics g) {
-		paint(g);
 	}
 }
