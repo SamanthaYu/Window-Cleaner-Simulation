@@ -5,17 +5,9 @@
  ****************************************************************/
 
 import java.awt.BasicStroke;
-import java.awt.Frame;
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
-import java.awt.AlphaComposite;
-import java.util.ArrayList;
-import java.lang.Thread;
-
 import java.awt.image.BufferStrategy;
 import javax.swing.JFrame;
 import java.awt.Toolkit;
@@ -25,11 +17,7 @@ public class WindowCleaner extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private Graphics2D g2Frame; 
 	private int appWidth, appHeight;
-	
-	private BufferedImage wcImage;
-	private Graphics2D g2winCleaner;
 	
 	private Building building;
 	private ChemicalSpray cspray;
@@ -39,7 +27,7 @@ public class WindowCleaner extends JFrame {
 	private WaterTank wtank;
 	private StatusBar sbar;
 	
-	private int wcWidth, wcHeight, wcStartX, wcStartY, nextWCstartX, currentWinX, displacement;
+	private int wcWidth, wcHeight, wcStartX, wcStartY, nextWCstartX, currentWinX, wcDisplacement, wcMoveUpIndex, wcMoveDownIndex;
 	private Color wcColor;
 	private boolean moveUp, moveDown, moveLeft, moveRight, firstMoveRight;
 	
@@ -65,19 +53,18 @@ public class WindowCleaner extends JFrame {
 		building = new Building(winCleaner, sbar);
 		cspray = new ChemicalSpray(winCleaner);
 		dolly = new Dolly(winCleaner);
-		scups = new SuctionCups(winCleaner);
+		scups = new SuctionCups(winCleaner, building);
 		wpump = new WaterPump(winCleaner);
 		wtank = new WaterTank(winCleaner);
 		
-		wcStartX = building.getBuildingStartX() + 2*building.getPaneWidth() + scups.getArmsLength() + scups.getSCupsDiameter();
+		wcStartX = building.getBuildingStartX() + building.getPaneWidth() + scups.getArmsLength() + scups.getSCupsDiameter();
 		wcStartY = building.getBuildingStartY();
 	}
 	
 	private void wcMove() {
-		System.out.println("currentWinX: " + currentWinX);
 		if (moveUp) {
 			wcMoveUp();
-			if (getWCstartY() - displacement < building.getBuildingStartY()) {
+			if (getWCstartY() - wcDisplacement < building.getBuildingStartY()) {
 				moveUp = false;
 				moveRight = true;
 				firstMoveRight = true;
@@ -87,7 +74,7 @@ public class WindowCleaner extends JFrame {
 		else if (moveDown) {
 			wcMoveDown();
 			
-			if (getWCstartY() + displacement >= getAppHeight() - getWCheight()) {
+			if (getWCstartY() + wcDisplacement >= getAppHeight() - getWCheight()) {
 				moveDown = false;
 				moveUp = true;
 			}
@@ -100,7 +87,7 @@ public class WindowCleaner extends JFrame {
 				firstMoveRight = false;
 			}
 			
-			if (getWCstartX() + displacement > nextWCstartX) {
+			if (getWCstartX() + wcDisplacement >= nextWCstartX) {
 				moveRight = false;
 				moveDown = true;
 			}
@@ -108,26 +95,33 @@ public class WindowCleaner extends JFrame {
 		else if (moveLeft) {
 			wcMoveLeft();
 			
-			if (getWCstartX() - building.getWindowWidth()/2 <= building.getBuildingStartX()) {
+			if (getWCstartX() - wcDisplacement <= building.getBuildingStartX() + scups.getArmsLength() + scups.getSCupsDiameter()) {
 				moveLeft = false;
 			}
 		}
+		
+		scups.scupsMove(this);
 	}
 	
 	private void wcMoveDown() {
-		wcStartY = getWCstartY() + displacement;
+		wcStartY = getWCstartY() + wcDisplacement;
 	}
 	
 	private void wcMoveUp() {
-		wcStartY = getWCstartY() - displacement;
+		wcStartY = getWCstartY() - wcDisplacement;
+		wcMoveUpIndex += 1;
+		
+		if (getWCmoveUpIndex() == getWCheight()) {
+			wcMoveUpIndex = 0;
+		}
 	}
 	
 	private void wcMoveLeft() {
-		wcStartX = getWCstartX() - displacement;
+		wcStartX = getWCstartX() - wcDisplacement;
 	}
 
 	private void wcMoveRight() {
-		wcStartX = getWCstartX() + displacement;
+		wcStartX = getWCstartX() + wcDisplacement;
 	}
 	
 	private void drawWinCleaner() {
@@ -138,6 +132,13 @@ public class WindowCleaner extends JFrame {
 				
 				try {
 					g2 = (Graphics2D) bf.getDrawGraphics();
+					
+					g2.setBackground(new Color(255, 255, 255, 0));
+					g2.clearRect(0, 0, getAppWidth(), getAppHeight());
+					
+					building.createBuilding(g2);
+					scups.drawSuctionCups(this, g2);
+					sbar.drawStatusBar(this, g2);
 					
 					this.wcMove();
 					this.drawWinFrame(g2);
@@ -161,7 +162,9 @@ public class WindowCleaner extends JFrame {
 		wcColor = new Color(3);
 		wcWidth = building.getWindowWidth() - 2*(scups.getArmsLength() + scups.getSCupsDiameter());
 		wcHeight = 62;
-		displacement = 1;
+		wcDisplacement = 2;
+		wcMoveUpIndex = 0;
+		wcMoveDownIndex = 0;
 		
 		moveDown = true;
 		moveUp = false;
@@ -172,12 +175,6 @@ public class WindowCleaner extends JFrame {
 	}
 	
 	private void drawWinFrame(Graphics2D g2) {
-		g2.setBackground(new Color(255, 255, 255, 0));
-		g2.clearRect(0, 0, getAppWidth(), getAppHeight());
-		
-		building.createBuilding(g2);	// If you delete this line, the window cleaner remains stationary
-			// However, the building is not drawn in the background
-			// Something about BufferStrategy is not used for transparency
 		g2.setColor(wcColor);
 		g2.fillRect(getWCstartX(), getWCstartY(), wcWidth, wcHeight);
 	}
@@ -208,5 +205,9 @@ public class WindowCleaner extends JFrame {
 	
 	public int getCurrentWinX() {
 		return currentWinX;
+	}
+	
+	public int getWCmoveUpIndex() {
+		return wcMoveUpIndex;
 	}
 }

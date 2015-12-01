@@ -1,12 +1,8 @@
-import java.awt.image.BufferedImage;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.BasicStroke;
 
-
 public class Building {
-	private BufferedImage buildingImage;
-	private Graphics2D g2building;
 	private Color dirtyWinColor, cleanWinColor, paneColor;
 	
 	private int buildingStartX, buildingStartY, buildingWidth, buildingHeight;
@@ -38,9 +34,12 @@ public class Building {
 	}
 	
 	public void createBuilding(Graphics2D g2) {
+		winStartX = getBuildingStartX();
+		numWinX = 0;
+		
 		do {
 			numWinX += 1;
-			System.out.println("numWinX: " + numWinX);
+			
 			do {
 				createWindow(g2, false, winStartX, winStartY);
 				winStartY += winHeight + paneWidth;
@@ -48,7 +47,7 @@ public class Building {
 			
 			winStartX += winWidth + paneWidth;
 			winStartY = buildingStartY;
-		} while (winStartX <= buildingWidth);
+		} while (getWinStartX() < getBuildingWidth());
 	}
 	
 	private void createWindow(Graphics2D g2, Boolean clean, int winStartX, int winStartY) {
@@ -63,10 +62,6 @@ public class Building {
 		g2.setColor(paneColor);
 		g2.setStroke(new BasicStroke(paneWidth));
 		g2.drawRect(winStartX, winStartY, winWidth, winHeight);
-	}
-	
-	public BufferedImage getBuildingImage() {
-		return buildingImage;
 	}
 	
 	public int getBuildingStartX() {
@@ -86,7 +81,7 @@ public class Building {
 	}
 	
 	public int getWindowWidth() {
-		return winWidth + 2*paneWidth;
+		return winWidth + paneWidth;
 	}
 	
 	public int getWindowHeight() {
@@ -99,5 +94,9 @@ public class Building {
 	
 	public int getNumWinX() {
 		return numWinX;
+	}
+	
+	public int getWinStartX() {
+		return winStartX;
 	}
 }
