@@ -27,7 +27,7 @@ public class WindowCleaner extends JFrame {
 	private WaterTank wtank;
 	private StatusBar sbar;
 	
-	private int wcWidth, wcHeight, wcStartX, wcStartY, nextWCstartX, currentWinX, wcDisplacement, wcMoveUpIndex, wcMoveDownIndex;
+	private int wcWidth, wcHeight, wcStartX, wcStartY, nextWCstartX, currentWinX, wcDisplacement, wcMiddleY;
 	private Color wcColor;
 	private boolean moveUp, moveDown, moveLeft, moveRight, firstMoveRight;
 	
@@ -100,7 +100,7 @@ public class WindowCleaner extends JFrame {
 			}
 		}
 		
-		scups.scupsMove(this);
+		scups.scupsMove(this, building);
 	}
 	
 	private void wcMoveDown() {
@@ -109,11 +109,6 @@ public class WindowCleaner extends JFrame {
 	
 	private void wcMoveUp() {
 		wcStartY = getWCstartY() - wcDisplacement;
-		wcMoveUpIndex += 1;
-		
-		if (getWCmoveUpIndex() == getWCheight()) {
-			wcMoveUpIndex = 0;
-		}
 	}
 	
 	private void wcMoveLeft() {
@@ -163,8 +158,6 @@ public class WindowCleaner extends JFrame {
 		wcWidth = building.getWindowWidth() - 2*(scups.getArmsLength() + scups.getSCupsDiameter());
 		wcHeight = 62;
 		wcDisplacement = 2;
-		wcMoveUpIndex = 0;
-		wcMoveDownIndex = 0;
 		
 		moveDown = true;
 		moveUp = false;
@@ -203,11 +196,31 @@ public class WindowCleaner extends JFrame {
 		return wcHeight;
 	}
 	
+	public int getMiddleY() {
+		return getWCstartY() + getWCheight()/2;
+	}
+	
 	public int getCurrentWinX() {
 		return currentWinX;
 	}
 	
-	public int getWCmoveUpIndex() {
-		return wcMoveUpIndex;
+	public boolean getMoveUp() {
+		return moveUp;
+	}
+	
+	public boolean getMoveDown() {
+		return moveDown;
+	}
+	
+	public boolean getMoveRight() {
+		return moveRight;
+	}
+	
+	public boolean getMoveLeft() {
+		return moveLeft;
+	}
+	
+	public int getWCdisplacement() {
+		return wcDisplacement;
 	}
 }

@@ -2,7 +2,7 @@ import java.awt.Graphics2D;
 import java.awt.Color;
 
 public class SuctionCups {
-	private int armsLength, scupsDiameter, scDisplacement, scupsTopPos, lrSCupsX, lrSCupsY;
+	private int armsLength, scupsDiameter, scupsDisplacement, scupsTopPos, lrSCupsX, lrSCupsY, lrSCupsPauseY;
 	private Color scupsOnColor, scupsReleasedColor;
 	private boolean lrSCupsOn, middleSCupOn;
 	
@@ -10,28 +10,77 @@ public class SuctionCups {
 		setSCdimensions(winCleaner, building);
 	}
 	
-	public void scupsMove(WindowCleaner winCleaner) {
-		if (winCleaner.getWCmoveUpIndex() == winCleaner.getWCheight()) {
-			lrSCupsMoveUp(winCleaner);
+	public void scupsMove(WindowCleaner winCleaner, Building building) {
+		if (winCleaner.getMoveUp()) {
+			// If the suction cups moves past where the suction cups are supposed to stop
+			if (lrSCupsY <= lrSCupsPauseY) {
+				// If the window cleaner catches up to the suction cups, then update the suction cup stopping position
+				if (winCleaner.getMiddleY() <= lrSCupsY) {
+					// If the suction cup's next stopping position would still be on the building
+					if (winCleaner.getMiddleY() - 5*winCleaner.getWCheight()/2 + scupsDiameter/2 > building.getBuildingStartY() + winCleaner.getWCheight()/2 - scupsDiameter/2)
+						lrSCupsPauseY = winCleaner.getMiddleY() - 5*winCleaner.getWCheight()/2 + scupsDiameter/2;
+					// Otherwise, move the suction cup to its final position at the top of the building
+					else {
+						System.out.println("hey up");
+						lrSCupsPauseY = building.getBuildingStartY() + winCleaner.getWCheight()/2 - scupsDiameter/2;
+					}
+				}
+			}
+			if (lrSCupsY > lrSCupsPauseY) {
+				lrSCupsMoveUp(winCleaner);
+			}
+		}
+		else if (winCleaner.getMoveDown()) {
+			// If the suction cup moves past where the suction cups are supposed to stop
+			if (lrSCupsY >= lrSCupsPauseY) {
+				// If the window cleaner catches up to the suction cups, then update the suction cup stopping position
+				if (winCleaner.getMiddleY() >= lrSCupsY) {
+					// If the suction cup's next stopping position would still be on the building
+					if (winCleaner.getMiddleY() + 5*winCleaner.getWCheight()/2 - scupsDiameter/2 < winCleaner.getAppHeight() - winCleaner.getWCheight()/2 - scupsDiameter)
+						lrSCupsPauseY = winCleaner.getMiddleY() + 5*winCleaner.getWCheight()/2 - scupsDiameter/2;
+					// Otherwise, move the suction cup to its final position at the bottom of the building
+					else {
+						System.out.println("hey down");
+						lrSCupsPauseY = winCleaner.getAppHeight() - winCleaner.getWCheight()/2 - scupsDiameter;
+					}
+				}
+			}
+			if (lrSCupsY < lrSCupsPauseY) {
+				lrSCupsMoveDown(winCleaner);
+			}
+		}
+		else if (winCleaner.getMoveRight()) {
+			lrSCupsX = winCleaner.getWCstartX() - getArmsLength() - scupsDiameter;
 		}
 	}
 	
 	private void setSCdimensions(WindowCleaner winCleaner, Building building) {
 		armsLength = 10;
 		scupsDiameter = 30;
+		scupsDisplacement = 2;
 		scupsOnColor = new Color(255,0,0);
 		scupsReleasedColor = new Color(0,255,0);
 		
-		lrSCupsX = building.getBuildingStartX() + scupsDiameter;
-		lrSCupsY = building.getBuildingStartY() - scupsDiameter/2;
+		lrSCupsX = building.getBuildingStartX();
+		lrSCupsY = building.getBuildingStartY() + 31 + scupsDiameter/2;
+		lrSCupsPauseY = winCleaner.getWCstartY() + 2*winCleaner.getWCheight() - scupsDiameter/2;
 	}
 
 	public void drawSuctionCups(WindowCleaner winCleaner, Graphics2D g2) {
 		g2.setColor(scupsOnColor);
-		g2.fillOval(lrSCupsX, lrSCupsY, scupsDiameter, scupsDiameter);
-		System.out.print("lrSCupsX: " + lrSCupsX);
-		System.out.println(" lrSCupsY: " + lrSCupsY);
+		g2.fillOval(getLRscupsX(), getLRscupsY(), scupsDiameter, scupsDiameter);
+		System.out.print("lrSCupsX: " + getLRscupsX());
+		System.out.println(" lrSCupsY: " + getLRscupsY());
 	}
+	
+	private void lrSCupsMoveUp(WindowCleaner winCleaner) {
+		lrSCupsY = getLRscupsY() - scupsDisplacement - winCleaner.getWCdisplacement();
+	}
+	
+	private void lrSCupsMoveDown(WindowCleaner winCleaner) {
+		lrSCupsY = getLRscupsY() + scupsDisplacement + winCleaner.getWCdisplacement();
+	}
+	
 	
 	private int getSCupsTopPos() {
 		return scupsTopPos;
@@ -53,11 +102,6 @@ public class SuctionCups {
 		middleSCupOn = false;
 	}
 	
-	private void lrSCupsMoveUp(WindowCleaner winCleaner) {
-		lrSCupsX = winCleaner.getWCstartX() - getArmsLength() - scupsDiameter;
-		lrSCupsY = winCleaner.getWCstartY() + winCleaner.getWCheight()/2 - scupsDiameter/2;
-	}
-	
 	private void middleSCupsMove() {
 		
 	}
@@ -68,5 +112,21 @@ public class SuctionCups {
 	
 	public int getSCupsDiameter() {
 		return scupsDiameter;
+	}
+	
+	public int getLRscupsX() {
+		return lrSCupsX;
+	}
+	
+	public int getLRscupsY() {
+		return lrSCupsY;
+	}
+	
+	public int getLRscupsPauseY() {
+		return lrSCupsPauseY;
+	}
+	
+	public int getSCupsDisplacement() {
+		return scupsDisplacement;
 	}
 }
