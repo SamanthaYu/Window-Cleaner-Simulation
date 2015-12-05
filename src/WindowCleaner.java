@@ -29,7 +29,7 @@ public class WindowCleaner extends JFrame {
 	
 	private int wcWidth, wcHeight, wcStartX, wcStartY, nextWCstartX, currentWinX, wcDisplacement, wcMiddleY;
 	private Color wcColor;
-	private boolean moveUp, moveDown, moveLeft, moveRight, firstMoveRight;
+	private boolean moveUp, moveDown, moveLeft, moveRight, miniMoveUp, miniMoveDown, firstMoveRight;
 	
 	public static void main(String args[]) {
 		WindowCleaner winCleaner = new WindowCleaner();
@@ -62,18 +62,32 @@ public class WindowCleaner extends JFrame {
 	}
 	
 	private void wcMove() {
-		if (moveUp) {
+		if (miniMoveDown) {
+			// Window cleaner moves down a bit so that middle suction cup can stay on building
+			wcMoveDown();
+			
+			// Window cleaner reaches the end of its small downward movement
+			if (getWCstartY() + wcDisplacement >= building.getBuildingStartY() + getWCheight()) {
+				miniMoveDown = false;
+				miniMoveUp = true;
+			}
+		}
+		else if (moveUp) {
 			wcMoveUp();
+			
+			// Window cleaner reaches top of of building
 			if (getWCstartY() - wcDisplacement < building.getBuildingStartY()) {
-				moveUp = false;
-				moveRight = true;
 				firstMoveRight = true;
 				currentWinX += 1;
+				miniMoveDown = true;
+				moveRight = true;
+				moveUp = false;
 			}
 		}
 		else if (moveDown) {
 			wcMoveDown();
 			
+			// Window cleaner reaches bottom of building
 			if (getWCstartY() + wcDisplacement >= getAppHeight() - getWCheight()) {
 				moveDown = false;
 				moveUp = true;
@@ -82,19 +96,32 @@ public class WindowCleaner extends JFrame {
 		else if (moveRight) {
 			wcMoveRight();
 			
+			// Window cleaner moves right for the first time
 			if (firstMoveRight) {
 				nextWCstartX = getWCstartX() + building.getWindowWidth();
 				firstMoveRight = false;
 			}
 			
+			// Window cleaner has reached next window
 			if (getWCstartX() + wcDisplacement >= nextWCstartX) {
 				moveRight = false;
+			}
+		}
+		else if (miniMoveUp) {
+			// Window cleaner moves down a bit so that middle suction cup can stay on building
+			wcMoveUp();
+			System.out.println("yay");
+			// Window cleaner reaches the end of its small downward movement
+			if (getWCstartY() - wcDisplacement <= building.getBuildingStartY()) {
+				miniMoveUp = false;
 				moveDown = true;
+				System.out.println("ok");
 			}
 		}
 		else if (moveLeft) {
 			wcMoveLeft();
 			
+			// Window cleaner has returned to its final position
 			if (getWCstartX() - wcDisplacement <= building.getBuildingStartX() + scups.getArmsLength() + scups.getSCupsDiameter()) {
 				moveLeft = false;
 			}
@@ -163,6 +190,8 @@ public class WindowCleaner extends JFrame {
 		moveUp = false;
 		moveRight = false;
 		moveLeft = true;
+		miniMoveDown = true;
+		miniMoveUp = false;
 		firstMoveRight = false;
 		currentWinX = 1;
 	}

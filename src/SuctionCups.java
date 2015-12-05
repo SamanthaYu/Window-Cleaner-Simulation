@@ -2,7 +2,7 @@ import java.awt.Graphics2D;
 import java.awt.Color;
 
 public class SuctionCups {
-	private int armsLength, scupsDiameter, scupsDisplacement, scupsTopPos, lrSCupsX, lrSCupsY, lrSCupsPauseY;
+	private int armsLength, scupsDiameter, scupsDisplacement, scupsTopPos, lrSCupsX, lrSCupsY, lrSCupsPauseX, lrSCupsPauseY;
 	private Color scupsOnColor, scupsReleasedColor;
 	private boolean lrSCupsOn, middleSCupOn;
 	
@@ -57,12 +57,13 @@ public class SuctionCups {
 	private void setSCdimensions(WindowCleaner winCleaner, Building building) {
 		armsLength = 10;
 		scupsDiameter = 30;
-		scupsDisplacement = 2;
+		scupsDisplacement = 3;
 		scupsOnColor = new Color(255,0,0);
 		scupsReleasedColor = new Color(0,255,0);
 		
 		lrSCupsX = building.getBuildingStartX();
 		lrSCupsY = building.getBuildingStartY() + 31 + scupsDiameter/2;
+		lrSCupsPauseX = building.getBuildingStartX() + winCleaner.getWCwidth();
 		lrSCupsPauseY = winCleaner.getWCstartY() + 2*winCleaner.getWCheight() - scupsDiameter/2;
 	}
 
@@ -81,6 +82,9 @@ public class SuctionCups {
 		lrSCupsY = getLRscupsY() + scupsDisplacement + winCleaner.getWCdisplacement();
 	}
 	
+	private void lrSCupsMoveRight(WindowCleaner winCleaner) {
+		lrSCupsX = getLRscupsX() + scupsDisplacement;
+	}
 	
 	private int getSCupsTopPos() {
 		return scupsTopPos;
