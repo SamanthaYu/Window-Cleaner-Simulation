@@ -29,7 +29,7 @@ public class WindowCleaner extends JFrame {
 	
 	private int wcWidth, wcHeight, wcStartX, wcStartY, nextWCstartX, currentWinX, wcDisplacement, wcMiddleY;
 	private Color wcColor;
-	private boolean moveUp, moveDown, moveLeft, moveRight, miniMoveUp, miniMoveDown, firstMoveRight;
+	private boolean moveUp, moveDown, moveLeft, moveRight, miniMoveUp, miniMoveDown, firstMoveRight, lastMiniMoveUp;
 	
 	public static void main(String args[]) {
 		WindowCleaner winCleaner = new WindowCleaner();
@@ -129,6 +129,8 @@ public class WindowCleaner extends JFrame {
 		// Window cleaner has returned to its final position
 		if (getWCstartX() - wcDisplacement <= building.getBuildingStartX() + scups.getArmsLength() + scups.getSCupsDiameter()) {
 			moveLeft = false;
+			lastMiniMoveUp = true;
+			miniMoveUp = true;
 		}
 	}
 	
@@ -147,12 +149,15 @@ public class WindowCleaner extends JFrame {
 	}
 	
 	private void miniMoveUp() {
+		System.out.println("hey");
 		// Window cleaner reaches the end of its small downward movement
 		if (getWCstartY() - wcDisplacement <= building.getBuildingStartY()) {
 			// Suction cups have finished moving upwards
 			if (scups.getLRscupsY() <= scups.getLRscupsPauseY()) {
 				miniMoveUp = false;
-				moveDown = true;
+				
+				if (!lastMiniMoveUp)
+					moveDown = true;
 			}
 		}
 		else {
@@ -203,7 +208,7 @@ public class WindowCleaner extends JFrame {
 				bf.show();	// Shows the contents of the backbuffer on the screen.
 		 
 		        Toolkit.getDefaultToolkit().sync();	//Tell the System to do the Drawing now, otherwise it can take a few extra ms until drawing is done which looks very jerky
-			} while (currentWinX <= building.getNumWinX());
+			} while (currentWinX <= building.getNumWinX() || lastMiniMoveUp);
 			
 			moveDown = false;
 			moveRight = false;
@@ -224,7 +229,10 @@ public class WindowCleaner extends JFrame {
 		miniMoveDown = true;
 		miniMoveUp = false;
 		firstMoveRight = false;
+		lastMiniMoveUp = false;
 		currentWinX = 1;
+		
+		scups.setInitialSCups(this, building);
 	}
 	
 	private void drawWinFrame(Graphics2D g2) {
