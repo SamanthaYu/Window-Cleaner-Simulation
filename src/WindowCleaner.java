@@ -29,7 +29,7 @@ public class WindowCleaner extends JFrame {
 	
 	private int wcWidth, wcHeight, wcStartX, wcStartY, nextWCstartX, currentWinXNum, wcDisplacement, wcMiddleY;
 	private Color wcColor;
-	private boolean moveUp, moveDown, moveLeft, moveRight, miniMoveUp, miniMoveDown, firstMoveRight, lastMiniMoveUp, cleanWindow;
+	private boolean moveUp, moveDown, moveLeft, moveRight, miniMoveUp, miniMoveDown, firstMoveRight, lastMiniMoveUp, cleanWindow, currentCleaning;
 	
 	public static void main(String args[]) {
 		WindowCleaner winCleaner = new WindowCleaner();
@@ -86,10 +86,10 @@ public class WindowCleaner extends JFrame {
 	
 	private void moveUp() {
 		wcMoveUp();
+		currentCleaning = true;
 		
 		// Window cleaner reaches almost the top of building
 		if (getWCstartY() - wcDisplacement < building.getBuildingStartY() + getWCheight()) {
-			currentWinXNum += 1;
 			cleanWindow = true;
 			
 			miniMoveUp = true;
@@ -159,12 +159,16 @@ public class WindowCleaner extends JFrame {
 		// Window cleaner reaches the end of its small downward movement
 		if (getWCstartY() - wcDisplacement <= building.getBuildingStartY()) {
 			miniMoveUp = false;
+			currentCleaning = false;
+			
+			if (cleanWindow)
+				currentWinXNum += 1;
 			
 			if (!lastMiniMoveUp)
 				miniMoveDown = true;
 		}
 		else {
-			// Window cleaner moves down a bit so that middle suction cup can stay on building
+			// Window cleaner moves up a bit so that middle suction cup is not on the building at the top
 			wcMoveUp();
 		}
 	}
@@ -197,7 +201,8 @@ public class WindowCleaner extends JFrame {
 					g2.setBackground(new Color(255, 255, 255, 0));
 					g2.clearRect(0, 0, getAppWidth(), getAppHeight());
 					
-					building.createBuilding(g2);
+					building.createBuilding(this, g2);
+					dolly.drawDolly(this, building, g2);
 					scups.drawSuctionCups(this, g2);
 					sbar.drawStatusBar(this, g2);
 					
@@ -311,6 +316,14 @@ public class WindowCleaner extends JFrame {
 	
 	public boolean getMiniMoveDown() {
 		return miniMoveDown;
+	}
+	
+	public boolean getCleanWin() {
+		return cleanWindow;
+	}
+	
+	public boolean getCurrentCleaning() {
+		return currentCleaning;
 	}
 	
 	public int getWCdisplacement() {

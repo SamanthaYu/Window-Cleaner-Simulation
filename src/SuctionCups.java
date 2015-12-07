@@ -5,7 +5,7 @@ import java.awt.BasicStroke;
 public class SuctionCups {
 	private int armsNormLength, scupsDiameter, scupsDisplacement, scupsTopPos;
 	private int leftSCupsX, rightSCupsX, middleSCupX, lrSCupsY, middleSCupY;
-	private int lrSCupsPauseY, middleSCupPauseX, middleSCupPauseY, armStrokeSize;
+	private int lrSCupsPauseY, middleSCupPauseX, armStrokeSize;
 	
 	private Color scupsOnColor, scupsReleasedColor, armsColor;
 	private boolean lrSCupsOn, middleSCupOn;
@@ -56,8 +56,8 @@ public class SuctionCups {
 		scupsDiameter = 30;
 		scupsDisplacement = 2;
 		
-		scupsOnColor = new Color(108,154,51);	// Green
-		scupsReleasedColor = new Color(170, 88, 57);	// Orange
+		scupsOnColor = new Color(170,57,57);		// Green
+		scupsReleasedColor = new Color(64,142,47);	// Orange
 		armsColor = new Color(0,0,0);
 		
 		armStrokeSize = 2;
@@ -66,15 +66,13 @@ public class SuctionCups {
 
 	public void drawSuctionCups(WindowCleaner winCleaner, Graphics2D g2) {
 		g2.setColor(armsColor);
-		g2.setStroke(new BasicStroke(armStrokeSize));
+		g2.setStroke(armStroke);
 		g2.drawLine(getLeftSCupMiddleX(), getLRscupMiddleY(), winCleaner.getWCstartX(), winCleaner.getWCmiddleY());	// Draws arm to left suction cup
 		g2.drawLine(getRightSCupMiddleX(), getLRscupMiddleY(), winCleaner.getWCendX(), winCleaner.getWCmiddleY());	// Draws arm to right suction cup
 		
 		g2.drawLine(winCleaner.getWCstartX(), winCleaner.getWCstartY(), getMiddleSCupMiddleX(), getMiddleSCupMiddleY());	// Draws left arm to middle suction cup
 		g2.drawLine(winCleaner.getWCendX(), winCleaner.getWCstartY(), getMiddleSCupMiddleX(), getMiddleSCupMiddleY());		// Draws right arm to middle suction cup
-		
-		g2.setStroke(armStroke);	// Return the stroke back to normal
-		
+
 		if (lrSCupsOn) {
 			g2.setColor(scupsOnColor);
 		}

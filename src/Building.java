@@ -4,9 +4,9 @@ import java.awt.BasicStroke;
 
 public class Building {
 	private Color dirtyWinColor, cleanWinColor, paneColor;
-	
 	private int buildingStartX, buildingStartY, buildingWidth, buildingHeight;
 	private int winStartX, winStartY, winWidth, winHeight, paneWidth, numWinX;
+	private boolean clean;
 	
 	public Building(WindowCleaner winCleaner, StatusBar sbar) {
 		setBdimensions(winCleaner, sbar);
@@ -33,7 +33,7 @@ public class Building {
 		paneColor = new Color(179,176,174);
 	}
 	
-	public void createBuilding(Graphics2D g2) {
+	public void createBuilding(WindowCleaner winCleaner, Graphics2D g2) {
 		winStartX = getBuildingStartX();
 		numWinX = 0;
 		
@@ -41,19 +41,29 @@ public class Building {
 			numWinX += 1;
 			
 			do {
-				createWindow(g2, false, winStartX, winStartY);
+				if (winCleaner.getCurrentWinXNum() > numWinX)
+					clean = true;
+				else
+					clean = false;
+				
+				createWindow(g2);
 				winStartY += winHeight + paneWidth;
 			} while (winStartY <= buildingHeight);
 			
 			winStartX += winWidth + paneWidth;
 			winStartY = buildingStartY;
 		} while (getWinStartX() < getBuildingWidth());
+		
+		if (winCleaner.getCurrentCleaning()) {
+			cleanWindow(winCleaner, g2);
+		}
 	}
 	
-	private void createWindow(Graphics2D g2, Boolean clean, int winStartX, int winStartY) {
+	private void createWindow(Graphics2D g2) {
 		if (clean) {
 			g2.setColor(cleanWinColor);
-		} else {
+		}
+		else {
 			g2.setColor(dirtyWinColor);
 		}
 		
@@ -62,6 +72,17 @@ public class Building {
 		g2.setColor(paneColor);
 		g2.setStroke(new BasicStroke(paneWidth));
 		g2.drawRect(winStartX, winStartY, winWidth, winHeight);
+	}
+	
+	private void cleanWindow(WindowCleaner winCleaner, Graphics2D g2) {
+		g2.setColor(cleanWinColor);
+		g2.fillRect(getCurrentWinStartX(winCleaner), winCleaner.getWCstartY(), winWidth, winCleaner.getAppHeight() - winCleaner.getWCstartY());
+		
+		if (winCleaner.getWCstartY() < getWinPaneY()) {
+			g2.setColor(paneColor);
+			g2.setStroke(new BasicStroke(2));
+			g2.drawLine(getCurrentWinStartX(winCleaner), getWinPaneY(), getCurrentWinEndX(winCleaner), getWinPaneY());
+		}
 	}
 	
 	public int getBuildingStartX() {
@@ -102,5 +123,17 @@ public class Building {
 	
 	public int getWinStartX() {
 		return winStartX;
+	}
+	
+	public int getWinPaneY() {
+		return winStartY + winHeight;
+	}
+	
+	public int getCurrentWinStartX(WindowCleaner winCleaner) {
+		return getBuildingStartX() + (winCleaner.getCurrentWinXNum() - 1)*getWindowWidth();
+	}
+	
+	public int getCurrentWinEndX(WindowCleaner winCleaner) {
+		return getCurrentWinStartX(winCleaner) + winWidth;
 	}
 }
