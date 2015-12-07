@@ -72,6 +72,10 @@ public class Building {
 		return buildingStartY;
 	}
 	
+	public int getBuildingEndX() {
+		return buildingStartX + buildingWidth;
+	}
+
 	public int getBuildingWidth() {
 		return buildingWidth;
 	}

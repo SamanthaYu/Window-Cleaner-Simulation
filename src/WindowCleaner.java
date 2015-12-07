@@ -269,8 +269,20 @@ public class WindowCleaner extends JFrame {
 		return wcHeight;
 	}
 	
-	public int getMiddleY() {
+	public int getWCmiddleX() {
+		return getWCstartX() + getWCwidth()/2;
+	}
+	
+	public int getWCmiddleY() {
 		return getWCstartY() + getWCheight()/2;
+	}
+	
+	public int getWCendX() {
+		return getWCstartX() + getWCwidth();
+	}
+	
+	public int getWCendY() {
+		return getWCstartY() + getWCheight();
 	}
 	
 	public int getCurrentWinXNum() {
