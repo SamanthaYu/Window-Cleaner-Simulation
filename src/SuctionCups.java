@@ -3,7 +3,10 @@ import java.awt.Color;
 import java.awt.BasicStroke;
 
 public class SuctionCups {
-	private int armsLength, scupsDiameter, scupsDisplacement, scupsTopPos, leftSCupsX, rightSCupsX, lrSCupsY, lrSCupsPauseX, lrSCupsPauseY, armStrokeSize;
+	private int armsNormLength, scupsDiameter, scupsDisplacement, scupsTopPos;
+	private int leftSCupsX, rightSCupsX, middleSCupX, lrSCupsY, middleSCupY;
+	private int lrSCupsPauseY, middleSCupPauseX, middleSCupPauseY, armStrokeSize;
+	
 	private Color scupsOnColor, scupsReleasedColor, armsColor;
 	private boolean lrSCupsOn, middleSCupOn;
 	private BasicStroke armStroke;
@@ -25,28 +28,35 @@ public class SuctionCups {
 		else if (winCleaner.getMiniMoveUp()) {
 			scupsMiniMoveUp(winCleaner, building);
 		}
-		else if (winCleaner.getMoveRight() || winCleaner.getMoveLeft()) {
-			leftSCupsX = winCleaner.getWCstartX() - getArmsLength() - scupsDiameter;
-			rightSCupsX = winCleaner.getWCstartX() + winCleaner.getWCwidth() + getArmsLength();
+		else if (winCleaner.getMoveRight()) {
+			scupsMoveRight(winCleaner, building);
+		}
+		else if (winCleaner.getMoveLeft()) {
+			scupsMoveLeft(winCleaner, building);
 		}
 	}
 	
 	public void setInitialSCups(WindowCleaner winCleaner, Building building) {
 		leftSCupsX = building.getBuildingStartX();
-		rightSCupsX =  winCleaner.getWCstartX() + winCleaner.getWCwidth() + getArmsLength();
-		lrSCupsY = building.getBuildingStartY() + 31 + scupsDiameter/2;
+		rightSCupsX =  winCleaner.getWCstartX() + winCleaner.getWCwidth() + getArmsNormLength();
+		middleSCupX = winCleaner.getWCstartX() + winCleaner.getWCwidth()/2 - scupsDiameter/2;
 		
-		lrSCupsPauseX = building.getBuildingStartX() + winCleaner.getWCwidth();
+		lrSCupsY = winCleaner.getWCstartY() + winCleaner.getWCheight()/2 + scupsDiameter/2;
+		middleSCupY = winCleaner.getWCstartY() - getArmsNormLength() - scupsDiameter;
+		
 		lrSCupsPauseY = winCleaner.getWCstartY() + 2*winCleaner.getWCheight() - scupsDiameter/2;
+		
+		switchLRscupsOn();
+		switchMiddleSCupOff();
 	}
 	
 	private void setSCdimensions(WindowCleaner winCleaner, Building building) {
-		armsLength = 10;
+		armsNormLength = 10;
 		scupsDiameter = 30;
-		scupsDisplacement = 3;
+		scupsDisplacement = 2;
 		
-		scupsOnColor = new Color(255,0,0);
-		scupsReleasedColor = new Color(0,255,0);
+		scupsOnColor = new Color(108,154,51);	// Green
+		scupsReleasedColor = new Color(170, 88, 57);	// Orange
 		armsColor = new Color(0,0,0);
 		
 		armStrokeSize = 2;
@@ -56,25 +66,30 @@ public class SuctionCups {
 	public void drawSuctionCups(WindowCleaner winCleaner, Graphics2D g2) {
 		g2.setColor(armsColor);
 		g2.setStroke(new BasicStroke(armStrokeSize));
-		g2.drawLine(getLeftSCupX() + scupsDiameter, getLRscupsY() + scupsDiameter/2, winCleaner.getWCstartX(), winCleaner.getMiddleY());	// Draws left arm
-		g2.drawLine(getRightSCupX(), getLRscupsY() + scupsDiameter/2, winCleaner.getWCstartX() + winCleaner.getWCwidth(), winCleaner.getMiddleY());	// Draws right arm
+		g2.drawLine(getLeftSCupMiddleX(), getLRscupMiddleY(), winCleaner.getWCstartX(), winCleaner.getMiddleY());	// Draws left arm
+		g2.drawLine(getRightSCupMiddleX(), getLRscupMiddleY(), winCleaner.getWCstartX() + winCleaner.getWCwidth(), winCleaner.getMiddleY());	// Draws right arm
 		
 		g2.setStroke(armStroke);	// Return the stroke back to normal
 		
-		g2.setColor(scupsOnColor);
+		if (lrSCupsOn) {
+			g2.setColor(scupsOnColor);
+		}
+		else {
+			g2.setColor(scupsReleasedColor);
+		}
 		g2.fillOval(getLeftSCupX(), getLRscupsY(), scupsDiameter, scupsDiameter);	// Draws left suction cup
 		g2.fillOval(getRightSCupX(), getLRscupsY(), scupsDiameter, scupsDiameter);	// Draws right suction cup
 		
+		if (middleSCupOn) {
+			g2.setColor(scupsOnColor);
+		}
+		else {
+			g2.setColor(scupsReleasedColor);
+		}
+		g2.fillOval(getMiddleSCupX(), getMiddleSCupY(), scupsDiameter, scupsDiameter);	// Draws middle suction cup
+		
 		System.out.print("lrSCupsX: " + getLeftSCupX());
 		System.out.println(" lrSCupsY: " + getLRscupsY());
-	}
-	
-	private void lrSCupsMoveUp(WindowCleaner winCleaner) {
-		lrSCupsY = getLRscupsY() - scupsDisplacement - winCleaner.getWCdisplacement();
-	}
-	
-	private void lrSCupsMoveDown(WindowCleaner winCleaner) {
-		lrSCupsY = getLRscupsY() + scupsDisplacement + winCleaner.getWCdisplacement();
 	}
 	
 	private void scupsMiniMoveDown(WindowCleaner winCleaner, Building building) {
@@ -84,6 +99,10 @@ public class SuctionCups {
 			
 			if (lrSCupsY < lrSCupsPauseY) {
 				lrSCupsMoveDown(winCleaner);
+				switchLRscupsOff();
+			}
+			else {
+				switchLRscupsOn();
 			}
 		}
 	}
@@ -95,48 +114,95 @@ public class SuctionCups {
 			
 			if (lrSCupsY > lrSCupsPauseY) {
 				lrSCupsMoveUp(winCleaner);
+				switchLRscupsOff();
+			}
+			else {
+				switchLRscupsOn();
 			}
 		}
 	}
 	
 	private void scupsMoveUp(WindowCleaner winCleaner, Building building) {
-		// If the suction cups moves past where the suction cups are supposed to stop
+		// If the left/right suction cups moves past where the suction cups are supposed to stop
 		if (lrSCupsY <= lrSCupsPauseY) {
-			// If the window cleaner catches up to the suction cups, then update the suction cup stopping position
+			// If the window cleaner catches up to the left/right suction cups, then update the suction cup stopping position
 			if (winCleaner.getMiddleY() <= lrSCupsY) {
-				// If the suction cup's next stopping position would still be on the building
+				// If the left/right suction cup's next stopping position would still be on the building
 				if (winCleaner.getMiddleY() - 5*winCleaner.getWCheight()/2 + scupsDiameter/2 > building.getBuildingStartY() + winCleaner.getWCheight()/2 - scupsDiameter/2)
 					lrSCupsPauseY = winCleaner.getMiddleY() - 5*winCleaner.getWCheight()/2 + scupsDiameter/2;
-				// Otherwise, move the suction cup to its final position at the top of the building
+				// Otherwise, move the left/right suction cups to its final position at the top of the building
 				else {
 					System.out.println("hey up");
 					lrSCupsPauseY = building.getBuildingStartY() + winCleaner.getWCheight()/2 - scupsDiameter/2;
 				}
 			}
 		}
+		
 		if (lrSCupsY > lrSCupsPauseY) {
 			lrSCupsMoveUp(winCleaner);
+			switchLRscupsOff();
+			switchMiddleSCupOn();
+		}
+		else {	// Move the middle suction cup whenever the left and right suction cup clinging to the building
+			middleSCupMoveUp(winCleaner);
+			switchMiddleSCupOff();
+			switchLRscupsOn();
 		}
 	}
 	
 	private void scupsMoveDown(WindowCleaner winCleaner, Building buildng) {
-		// If the suction cup moves past where the suction cups are supposed to stop
+		// If the left/right suction cup moves past where the suction cups are supposed to stop
 		if (lrSCupsY >= lrSCupsPauseY) {
-			// If the window cleaner catches up to the suction cups, then update the suction cup stopping position
+			// If the window cleaner catches up to the left/right suction cups, then update the suction cup stopping position
 			if (winCleaner.getMiddleY() >= lrSCupsY) {
-				// If the suction cup's next stopping position would still be on the building
+				// If the left/right suction cup's next stopping position would still be on the building
 				if (winCleaner.getMiddleY() + 5*winCleaner.getWCheight()/2 - scupsDiameter/2 < winCleaner.getAppHeight() - winCleaner.getWCheight()/2 - scupsDiameter)
 					lrSCupsPauseY = winCleaner.getMiddleY() + 5*winCleaner.getWCheight()/2 - scupsDiameter/2;
-				// Otherwise, move the suction cup to its final position at the bottom of the building
+				// Otherwise, move the left/right suction cups to its final position at the bottom of the building
 				else {
-					System.out.println("hey down");
 					lrSCupsPauseY = winCleaner.getAppHeight() - winCleaner.getWCheight()/2 - scupsDiameter;
 				}
 			}
 		}
+		
 		if (lrSCupsY < lrSCupsPauseY) {
 			lrSCupsMoveDown(winCleaner);
+			switchLRscupsOff();
+			switchMiddleSCupOn();
 		}
+		else {	// Move the middle suction cup whenever the left and right suction cup clinging to the building
+			middleSCupMoveDown(winCleaner);
+			switchMiddleSCupOff();
+			switchLRscupsOn();
+		}
+	}
+	
+	private void scupsMoveLeft(WindowCleaner winCleaner, Building building) {
+		leftSCupsX = winCleaner.getWCstartX() - getArmsNormLength() - scupsDiameter;
+		rightSCupsX = winCleaner.getWCstartX() + winCleaner.getWCwidth() + getArmsNormLength();
+		switchLRscupsOff();
+	}
+	
+	private void scupsMoveRight(WindowCleaner winCleaner, Building building) {
+		leftSCupsX = winCleaner.getWCstartX() - getArmsNormLength() - scupsDiameter;
+		rightSCupsX = winCleaner.getWCstartX() + winCleaner.getWCwidth() + getArmsNormLength();
+		switchLRscupsOff();
+	}
+	
+	private void lrSCupsMoveUp(WindowCleaner winCleaner) {
+		lrSCupsY = getLRscupsY() - scupsDisplacement - winCleaner.getWCdisplacement();
+	}
+	
+	private void lrSCupsMoveDown(WindowCleaner winCleaner) {
+		lrSCupsY = getLRscupsY() + scupsDisplacement + winCleaner.getWCdisplacement();
+	}
+	
+	private void middleSCupMoveUp(WindowCleaner winCleaner) {
+		middleSCupY = getMiddleSCupY() - scupsDisplacement - winCleaner.getWCdisplacement();
+	}
+	
+	private void middleSCupMoveDown(WindowCleaner winCleaner) {
+		middleSCupY = getMiddleSCupY() + scupsDisplacement + winCleaner.getWCdisplacement();
 	}
 	
 	private int getSCupsTopPos() {
@@ -159,8 +225,24 @@ public class SuctionCups {
 		middleSCupOn = false;
 	}
 	
-	public int getArmsLength() {
-		return armsLength;
+	public void switchLRscupsOn() {
+		lrSCupsOn = true;
+	}
+	
+	public void switchLRscupsOff() {
+		lrSCupsOn = false;
+	}
+	
+	public void switchMiddleSCupOn() {
+		middleSCupOn = true;
+	}
+	
+	public void switchMiddleSCupOff() {
+		middleSCupOn = false;
+	}
+	
+	public int getArmsNormLength() {
+		return armsNormLength;
 	}
 	
 	public int getSCupsDiameter() {
@@ -175,8 +257,28 @@ public class SuctionCups {
 		return rightSCupsX;
 	}
 	
+	public int getMiddleSCupX() {
+		return middleSCupX;
+	}
+	
 	public int getLRscupsY() {
 		return lrSCupsY;
+	}
+	
+	public int getMiddleSCupY() {
+		return middleSCupY;
+	}
+	
+	public int getLeftSCupMiddleX() {
+		return getLeftSCupX() + scupsDiameter/2;
+	}
+	
+	public int getRightSCupMiddleX() {
+		return getRightSCupX() + scupsDiameter/2;
+	}
+	
+	public int getLRscupMiddleY() {
+		return getLRscupsY() + scupsDiameter/2;
 	}
 	
 	public int getLRscupsPauseY() {
@@ -185,5 +287,13 @@ public class SuctionCups {
 	
 	public int getSCupsDisplacement() {
 		return scupsDisplacement;
+	}
+	
+	public boolean getLRscupsOn() {
+		return lrSCupsOn;
+	}
+	
+	public boolean getMiddleSCupOn() {
+		return middleSCupOn;
 	}
 }

@@ -57,7 +57,7 @@ public class WindowCleaner extends JFrame {
 		wpump = new WaterPump(winCleaner);
 		wtank = new WaterTank(winCleaner);
 		
-		wcStartX = building.getBuildingStartX() + building.getPaneWidth() + scups.getArmsLength() + scups.getSCupsDiameter();
+		wcStartX = building.getBuildingStartX() + building.getPaneWidth() + scups.getArmsNormLength() + scups.getSCupsDiameter();
 		wcStartY = building.getBuildingStartY();
 	}
 	
@@ -80,7 +80,7 @@ public class WindowCleaner extends JFrame {
 		else if (moveLeft) {
 			moveLeft();
 		}
-		
+
 		scups.scupsMove(this, building);
 	}
 	
@@ -127,7 +127,7 @@ public class WindowCleaner extends JFrame {
 		wcMoveLeft();
 		
 		// Window cleaner has returned to its final position
-		if (getWCstartX() - wcDisplacement <= building.getBuildingStartX() + scups.getArmsLength() + scups.getSCupsDiameter()) {
+		if (getWCstartX() - wcDisplacement <= building.getBuildingStartX() + scups.getArmsNormLength() + scups.getSCupsDiameter()) {
 			moveLeft = false;
 			lastMiniMoveUp = true;
 			miniMoveUp = true;
@@ -218,7 +218,7 @@ public class WindowCleaner extends JFrame {
 	
 	private void setWCdimensions() {
 		wcColor = new Color(3);
-		wcWidth = building.getWindowWidth() - 2*(scups.getArmsLength() + scups.getSCupsDiameter());
+		wcWidth = building.getWindowWidth() - 2*(scups.getArmsNormLength() + scups.getSCupsDiameter());
 		wcHeight = 62;
 		wcDisplacement = 2;
 		
@@ -228,6 +228,7 @@ public class WindowCleaner extends JFrame {
 		moveLeft = true;
 		miniMoveDown = true;
 		miniMoveUp = false;
+		
 		firstMoveRight = false;
 		lastMiniMoveUp = false;
 		currentWinX = 1;
