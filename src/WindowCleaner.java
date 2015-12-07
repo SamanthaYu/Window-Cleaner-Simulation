@@ -23,7 +23,6 @@ public class WindowCleaner extends JFrame {
 	private ChemicalSpray cspray;
 	private Dolly dolly;
 	private SuctionCups scups;
-	private WaterPump wpump;
 	private WaterTank wtank;
 	private StatusBar sbar;
 	
@@ -54,11 +53,32 @@ public class WindowCleaner extends JFrame {
 		cspray = new ChemicalSpray(winCleaner);
 		dolly = new Dolly(winCleaner);
 		scups = new SuctionCups(winCleaner, building);
-		wpump = new WaterPump(winCleaner);
 		wtank = new WaterTank(winCleaner);
 		
 		wcStartX = building.getBuildingStartX() + building.getPaneWidth() + scups.getArmsNormLength() + scups.getSCupsDiameter();
 		wcStartY = building.getBuildingStartY();
+	}
+	
+	private void setWCdimensions() {
+		wcColor = new Color(0,0,0);
+		wcWidth = building.getWindowWidth() - 2*(scups.getArmsNormLength() + scups.getSCupsDiameter());
+		wcHeight = 62;
+		wcDisplacement = 1;
+		
+		moveDown = false;
+		moveUp = false;
+		moveRight = false;
+		moveLeft = true;
+		miniMoveDown = true;
+		miniMoveUp = false;
+		
+		firstMoveRight = false;
+		lastMiniMoveUp = false;
+		cleanWindow = false;
+		currentWinXNum = 1;
+		
+		scups.setInitialSCups(this, building);
+		sbar.updateStatus(this, building, cspray, dolly, scups, wtank);
 	}
 	
 	private void wcMove() {
@@ -204,6 +224,9 @@ public class WindowCleaner extends JFrame {
 					building.createBuilding(this, g2);
 					dolly.drawDolly(this, building, g2);
 					scups.drawSuctionCups(this, g2);
+					
+					checkStatus();
+					sbar.updateStatus(this, building, cspray, dolly, scups, wtank);
 					sbar.drawStatusBar(this, g2);
 					
 					this.wcMove();
@@ -224,25 +247,10 @@ public class WindowCleaner extends JFrame {
 		} while (moveLeft);
 	}
 	
-	private void setWCdimensions() {
-		wcColor = new Color(3);
-		wcWidth = building.getWindowWidth() - 2*(scups.getArmsNormLength() + scups.getSCupsDiameter());
-		wcHeight = 62;
-		wcDisplacement = 1;
-		
-		moveDown = false;
-		moveUp = false;
-		moveRight = false;
-		moveLeft = true;
-		miniMoveDown = true;
-		miniMoveUp = false;
-		
-		firstMoveRight = false;
-		lastMiniMoveUp = false;
-		cleanWindow = false;
-		currentWinXNum = 1;
-		
-		scups.setInitialSCups(this, building);
+	private void checkStatus() {
+		cspray.checkChemicals(this);
+		wtank.checkWater(this);
+		dolly.checkTanks(this,cspray,wtank);
 	}
 	
 	private void drawWinFrame(Graphics2D g2) {

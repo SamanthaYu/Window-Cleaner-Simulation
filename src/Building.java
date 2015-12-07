@@ -28,9 +28,9 @@ public class Building {
 		winWidth = 253;
 		winHeight = 311;
 		
-		dirtyWinColor = new Color(127,171,185);
-		cleanWinColor = new Color(178,208,218);
-		paneColor = new Color(179,176,174);
+		dirtyWinColor = new Color(71,113,135);
+		cleanWinColor = new Color(109,147,161);
+		paneColor = new Color(174,174,174);
 	}
 	
 	public void createBuilding(WindowCleaner winCleaner, Graphics2D g2) {
