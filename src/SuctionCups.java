@@ -19,14 +19,14 @@ public class SuctionCups {
 		if (winCleaner.getMiniMoveDown()) {
 			scupsMiniMoveDown(winCleaner, building);
 		}
+		else if (winCleaner.getMiniMoveUp()) {
+			scupsMiniMoveUp(winCleaner, building);
+		}
 		else if (winCleaner.getMoveUp()) {
 			scupsMoveUp(winCleaner, building);
 		}
 		else if (winCleaner.getMoveDown()) {
 			scupsMoveDown(winCleaner, building);
-		}
-		else if (winCleaner.getMiniMoveUp()) {
-			scupsMiniMoveUp(winCleaner, building);
 		}
 		else if (winCleaner.getMoveRight()) {
 			scupsMoveRight(winCleaner, building);
@@ -88,42 +88,54 @@ public class SuctionCups {
 			g2.setColor(scupsReleasedColor);
 		}
 		g2.fillOval(getMiddleSCupX(), getMiddleSCupY(), scupsDiameter, scupsDiameter);	// Draws middle suction cup
-		
-		System.out.print("lrSCupsX: " + getLeftSCupX());
-		System.out.println(" lrSCupsY: " + getLRscupsY());
 	}
 	
 	private void scupsMiniMoveDown(WindowCleaner winCleaner, Building building) {
+		lrSCupsPauseY = building.getBuildingStartY() + 3*winCleaner.getWCheight()/2 - scupsDiameter/2;
+		if (lrSCupsY < lrSCupsPauseY) {
+			lrSCupsMoveDown(winCleaner);
+			switchLRscupsOff();
+		}
+		else {
+			switchLRscupsOn();
+		}
+		
 		// If window cleaner has reached the bottom of its mini downward movement
 		if (winCleaner.getWCstartY() + winCleaner.getWCdisplacement() >= building.getBuildingStartY() + winCleaner.getWCheight()) {
-			lrSCupsPauseY = building.getBuildingStartY() + 3*winCleaner.getWCheight()/2 - scupsDiameter/2;
-			
-			if (lrSCupsY < lrSCupsPauseY) {
-				lrSCupsMoveDown(winCleaner);
-				switchLRscupsOff();
-			}
-			else {
-				switchLRscupsOn();
-			}
+			middleSCupMoveDown(winCleaner);
+			switchMiddleSCupOn();
 		}
 	}
 	
 	private void scupsMiniMoveUp(WindowCleaner winCleaner, Building building) {
+		lrSCupsPauseY = building.getBuildingStartY() + winCleaner.getWCheight()/2 - scupsDiameter/2;	
+		if (lrSCupsY > lrSCupsPauseY) {
+			lrSCupsMoveUp(winCleaner);
+			switchLRscupsOff();
+		}
+		else {
+			switchLRscupsOn();
+		}
+		
 		// If the window cleaner has reached the bottom of its mini upward movement
 		if (winCleaner.getWCstartY() - winCleaner.getWCdisplacement() <= building.getBuildingStartY()) {
-			lrSCupsPauseY = building.getBuildingStartY() + winCleaner.getWCheight()/2 - scupsDiameter/2;
-			
-			if (lrSCupsY > lrSCupsPauseY) {
-				lrSCupsMoveUp(winCleaner);
-				switchLRscupsOff();
-			}
-			else {
-				switchLRscupsOn();
-			}
+			middleSCupMoveUp(winCleaner);
+			switchMiddleSCupOff();
 		}
 	}
 	
 	private void scupsMoveUp(WindowCleaner winCleaner, Building building) {
+		if (lrSCupsY > lrSCupsPauseY) {
+			lrSCupsMoveUp(winCleaner);
+			switchLRscupsOff();
+			switchMiddleSCupOn();
+		}
+		else {	// Move the middle suction cup whenever the left and right suction cup cling to the building
+			middleSCupMoveUp(winCleaner);
+			switchMiddleSCupOff();
+			switchLRscupsOn();
+		}
+		
 		// If the left/right suction cups moves past where the suction cups are supposed to stop
 		if (lrSCupsY <= lrSCupsPauseY) {
 			// If the window cleaner catches up to the left/right suction cups, then update the suction cup stopping position
@@ -133,25 +145,27 @@ public class SuctionCups {
 					lrSCupsPauseY = winCleaner.getMiddleY() - 5*winCleaner.getWCheight()/2 + scupsDiameter/2;
 				// Otherwise, move the left/right suction cups to its final position at the top of the building
 				else {
-					System.out.println("hey up");
 					lrSCupsPauseY = building.getBuildingStartY() + winCleaner.getWCheight()/2 - scupsDiameter/2;
 				}
 			}
 		}
-		
-		if (lrSCupsY > lrSCupsPauseY) {
-			lrSCupsMoveUp(winCleaner);
-			switchLRscupsOff();
-			switchMiddleSCupOn();
-		}
-		else {	// Move the middle suction cup whenever the left and right suction cup clinging to the building
-			middleSCupMoveUp(winCleaner);
-			switchMiddleSCupOff();
-			switchLRscupsOn();
-		}
 	}
 	
 	private void scupsMoveDown(WindowCleaner winCleaner, Building buildng) {
+		if (lrSCupsY < lrSCupsPauseY) {
+			lrSCupsMoveDown(winCleaner);
+			switchLRscupsOff();
+			
+			//if (!firstMiddleMoveDown) {
+				switchMiddleSCupOn();
+			//}
+		}
+		else {	// Move the middle suction cup whenever the left and right suction cup cling to the building
+			middleSCupMoveDown(winCleaner);
+			switchMiddleSCupOff();
+			switchLRscupsOn();
+		}
+		
 		// If the left/right suction cup moves past where the suction cups are supposed to stop
 		if (lrSCupsY >= lrSCupsPauseY) {
 			// If the window cleaner catches up to the left/right suction cups, then update the suction cup stopping position
@@ -164,17 +178,6 @@ public class SuctionCups {
 					lrSCupsPauseY = winCleaner.getAppHeight() - winCleaner.getWCheight()/2 - scupsDiameter;
 				}
 			}
-		}
-		
-		if (lrSCupsY < lrSCupsPauseY) {
-			lrSCupsMoveDown(winCleaner);
-			switchLRscupsOff();
-			switchMiddleSCupOn();
-		}
-		else {	// Move the middle suction cup whenever the left and right suction cup clinging to the building
-			middleSCupMoveDown(winCleaner);
-			switchMiddleSCupOff();
-			switchLRscupsOn();
 		}
 	}
 	

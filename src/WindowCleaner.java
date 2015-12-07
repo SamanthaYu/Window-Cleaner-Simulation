@@ -139,16 +139,14 @@ public class WindowCleaner extends JFrame {
 		// Window cleaner reaches the end of its small downward movement
 		if (getWCstartY() + wcDisplacement >= building.getBuildingStartY() + getWCheight()) {
 			// Suction cups have finished moving downwards
-			if (scups.getLRscupsY() >= scups.getLRscupsPauseY()) {
-				miniMoveDown = false;
-				
-				if (!cleanWindow) {
-					moveDown = true;
-				}
-				else {
-					moveRight = true;
-					firstMoveRight = true;
-				}
+			miniMoveDown = false;
+			
+			if (!cleanWindow) {
+				moveDown = true;
+			}
+			else {
+				moveRight = true;
+				firstMoveRight = true;
 			}
 		}
 		else {
@@ -160,13 +158,10 @@ public class WindowCleaner extends JFrame {
 	private void miniMoveUp() {
 		// Window cleaner reaches the end of its small downward movement
 		if (getWCstartY() - wcDisplacement <= building.getBuildingStartY()) {
-			// Suction cups have finished moving upwards
-			if (scups.getLRscupsY() <= scups.getLRscupsPauseY()) {
-				miniMoveUp = false;
-				
-				if (!lastMiniMoveUp)
-					miniMoveDown = true;
-			}
+			miniMoveUp = false;
+			
+			if (!lastMiniMoveUp)
+				miniMoveDown = true;
 		}
 		else {
 			// Window cleaner moves down a bit so that middle suction cup can stay on building
