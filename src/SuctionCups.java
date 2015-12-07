@@ -45,6 +45,7 @@ public class SuctionCups {
 		middleSCupY = winCleaner.getWCstartY() - getArmsNormLength() - scupsDiameter;
 		
 		lrSCupsPauseY = winCleaner.getWCstartY() + 2*winCleaner.getWCheight() - scupsDiameter/2;
+		middleSCupPauseY = winCleaner.getWCstartY() + winCleaner.getWCheight();
 		
 		switchLRscupsOn();
 		switchMiddleSCupOff();
@@ -198,11 +199,11 @@ public class SuctionCups {
 	}
 	
 	private void middleSCupMoveUp(WindowCleaner winCleaner) {
-		middleSCupY = getMiddleSCupY() - scupsDisplacement - winCleaner.getWCdisplacement();
+		middleSCupY = winCleaner.getWCstartY() - winCleaner.getWCheight()/2 - getArmsNormLength() - scupsDiameter;
 	}
 	
 	private void middleSCupMoveDown(WindowCleaner winCleaner) {
-		middleSCupY = getMiddleSCupY() + scupsDisplacement + winCleaner.getWCdisplacement();
+		middleSCupY = winCleaner.getWCstartY() - getArmsNormLength() - scupsDiameter;
 	}
 	
 	private int getSCupsTopPos() {

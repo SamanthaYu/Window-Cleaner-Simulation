@@ -27,9 +27,9 @@ public class WindowCleaner extends JFrame {
 	private WaterTank wtank;
 	private StatusBar sbar;
 	
-	private int wcWidth, wcHeight, wcStartX, wcStartY, nextWCstartX, currentWinX, wcDisplacement, wcMiddleY;
+	private int wcWidth, wcHeight, wcStartX, wcStartY, nextWCstartX, currentWinXNum, wcDisplacement, wcMiddleY;
 	private Color wcColor;
-	private boolean moveUp, moveDown, moveLeft, moveRight, miniMoveUp, miniMoveDown, firstMoveRight, lastMiniMoveUp;
+	private boolean moveUp, moveDown, moveLeft, moveRight, miniMoveUp, miniMoveDown, firstMoveRight, lastMiniMoveUp, cleanWindow;
 	
 	public static void main(String args[]) {
 		WindowCleaner winCleaner = new WindowCleaner();
@@ -87,12 +87,12 @@ public class WindowCleaner extends JFrame {
 	private void moveUp() {
 		wcMoveUp();
 		
-		// Window cleaner reaches top of of building
-		if (getWCstartY() - wcDisplacement < building.getBuildingStartY()) {
-			firstMoveRight = true;
-			currentWinX += 1;
-			miniMoveDown = true;
-			moveRight = true;
+		// Window cleaner reaches almost the top of building
+		if (getWCstartY() - wcDisplacement < building.getBuildingStartY() + getWCheight()) {
+			currentWinXNum += 1;
+			cleanWindow = true;
+			
+			miniMoveUp = true;
 			moveUp = false;
 		}
 	}
@@ -110,7 +110,7 @@ public class WindowCleaner extends JFrame {
 	private void moveRight() {
 		wcMoveRight();
 		
-		// Window cleaner moves right for the first time
+		// Window cleaner moves right for the next window's first time
 		if (firstMoveRight) {
 			nextWCstartX = getWCstartX() + building.getWindowWidth();
 			firstMoveRight = false;
@@ -120,6 +120,7 @@ public class WindowCleaner extends JFrame {
 		if (getWCstartX() + wcDisplacement >= nextWCstartX) {
 			moveRight = false;
 			miniMoveUp = true;
+			cleanWindow = false;
 		}
 	}
 	
@@ -140,6 +141,14 @@ public class WindowCleaner extends JFrame {
 			// Suction cups have finished moving downwards
 			if (scups.getLRscupsY() >= scups.getLRscupsPauseY()) {
 				miniMoveDown = false;
+				
+				if (!cleanWindow) {
+					moveDown = true;
+				}
+				else {
+					moveRight = true;
+					firstMoveRight = true;
+				}
 			}
 		}
 		else {
@@ -149,7 +158,6 @@ public class WindowCleaner extends JFrame {
 	}
 	
 	private void miniMoveUp() {
-		System.out.println("hey");
 		// Window cleaner reaches the end of its small downward movement
 		if (getWCstartY() - wcDisplacement <= building.getBuildingStartY()) {
 			// Suction cups have finished moving upwards
@@ -157,7 +165,7 @@ public class WindowCleaner extends JFrame {
 				miniMoveUp = false;
 				
 				if (!lastMiniMoveUp)
-					moveDown = true;
+					miniMoveDown = true;
 			}
 		}
 		else {
@@ -208,7 +216,7 @@ public class WindowCleaner extends JFrame {
 				bf.show();	// Shows the contents of the backbuffer on the screen.
 		 
 		        Toolkit.getDefaultToolkit().sync();	//Tell the System to do the Drawing now, otherwise it can take a few extra ms until drawing is done which looks very jerky
-			} while (currentWinX <= building.getNumWinX() || lastMiniMoveUp);
+			} while (currentWinXNum <= building.getNumWinX() || lastMiniMoveUp);
 			
 			moveDown = false;
 			moveRight = false;
@@ -220,9 +228,9 @@ public class WindowCleaner extends JFrame {
 		wcColor = new Color(3);
 		wcWidth = building.getWindowWidth() - 2*(scups.getArmsNormLength() + scups.getSCupsDiameter());
 		wcHeight = 62;
-		wcDisplacement = 2;
+		wcDisplacement = 1;
 		
-		moveDown = true;
+		moveDown = false;
 		moveUp = false;
 		moveRight = false;
 		moveLeft = true;
@@ -231,7 +239,8 @@ public class WindowCleaner extends JFrame {
 		
 		firstMoveRight = false;
 		lastMiniMoveUp = false;
-		currentWinX = 1;
+		cleanWindow = false;
+		currentWinXNum = 1;
 		
 		scups.setInitialSCups(this, building);
 	}
@@ -269,8 +278,8 @@ public class WindowCleaner extends JFrame {
 		return getWCstartY() + getWCheight()/2;
 	}
 	
-	public int getCurrentWinX() {
-		return currentWinX;
+	public int getCurrentWinXNum() {
+		return currentWinXNum;
 	}
 	
 	public boolean getMoveUp() {
