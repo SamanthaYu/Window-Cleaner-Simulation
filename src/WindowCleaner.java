@@ -4,13 +4,13 @@
  * @author Samantha Yu
  ****************************************************************/
 
-import java.awt.BasicStroke;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.image.BufferStrategy;
 import javax.swing.JFrame;
 import java.awt.Toolkit;
+import java.lang.System;
+import javax.swing.JOptionPane;
 
 public class WindowCleaner extends JFrame {
 	/**
@@ -30,16 +30,41 @@ public class WindowCleaner extends JFrame {
 	private Color wcColor;
 	private boolean moveUp, moveDown, moveLeft, moveRight, miniMoveUp, miniMoveDown, firstMoveRight, lastMiniMoveUp, cleanWindow, currentCleaning;
 	
+	private long lastTime, now;
+	private double frames, ns, delta;
+	private static boolean quit;
+	private static int restartReply;
+	
 	public static void main(String args[]) {
 		WindowCleaner winCleaner = new WindowCleaner();
-		winCleaner.createWinCleaner(winCleaner);
-		winCleaner.setWCdimensions();
-		winCleaner.drawWinCleaner();
+		
+		do {
+			winCleaner.createWinCleaner(winCleaner);
+			winCleaner.setWCdimensions();
+			winCleaner.drawWinCleaner();
+			
+			restartReply = JOptionPane.showConfirmDialog(
+					null,
+				    "Would you like to restart the simulation?",
+				    "Restart program",
+				    JOptionPane.YES_NO_OPTION);
+			
+			if (restartReply == JOptionPane.YES_OPTION) {
+				quit = false;
+			}
+			else {
+				quit = true;
+			}
+		} while (!quit);
 	}
 	
 	public WindowCleaner() {
 		appWidth = 1366;
 		appHeight = 725;
+		frames = 120D;
+		quit = false;
+		
+		this.setTitle("Zeta -- Automated Window Cleaner Simulation");
 		this.setSize(appWidth, appHeight);
 		this.setVisible(true);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -186,6 +211,8 @@ public class WindowCleaner extends JFrame {
 			
 			if (!lastMiniMoveUp)
 				miniMoveDown = true;
+			else
+				lastMiniMoveUp = false;
 		}
 		else {
 			// Window cleaner moves up a bit so that middle suction cup is not on the building at the top
@@ -210,35 +237,47 @@ public class WindowCleaner extends JFrame {
 	}
 	
 	private void drawWinCleaner() {
+		lastTime = System.nanoTime();	// Get system time
+		ns = 1000000000 / frames;
+		delta = 0;
+		
 		do {
 			do {
-				BufferStrategy bf = this.getBufferStrategy();
-				Graphics2D g2 = null;
+				now = System.nanoTime();		// Update time
+				delta += (now - lastTime) / ns;	// Calculate change in time since last known time
+				lastTime = now;					// Update last known time
 				
-				try {
-					g2 = (Graphics2D) bf.getDrawGraphics();
+				if (delta >= 1) {
+					BufferStrategy bf = this.getBufferStrategy();
+					Graphics2D g2 = null;
+					delta--;
 					
-					g2.setBackground(new Color(255, 255, 255, 0));
-					g2.clearRect(0, 0, getAppWidth(), getAppHeight());
-					
-					building.createBuilding(this, g2);
-					dolly.drawDolly(this, building, g2);
-					scups.drawSuctionCups(this, g2);
-					
-					checkStatus();
-					sbar.updateStatus(this, building, cspray, dolly, scups, wtank);
-					sbar.drawStatusBar(this, g2);
-					
-					this.wcMove();
-					this.drawWinFrame(g2);
-				}
-				finally {
-					g2.dispose();	// It is best to dispose() a Graphics object when done with it.
-				}
+					try {
+						g2 = (Graphics2D) bf.getDrawGraphics();
+						
+						g2.setBackground(new Color(255, 255, 255, 0));
+						g2.clearRect(0, 0, getAppWidth(), getAppHeight());
+						
+						building.createBuilding(this, g2);
+						dolly.drawDolly(this, building, g2);
+						scups.drawSuctionCups(this, g2);
+						
+						checkStatus();
+						sbar.updateStatus(this, building, cspray, dolly, scups, wtank);
+						sbar.drawStatusBar(this, g2);
+						
+						this.wcMove();
+						this.drawWinFrame(g2);
+					}
+					finally {
+						g2.dispose();	// It is best to dispose() a Graphics object when done with it.
+					}
+				 
+					bf.show();	// Shows the contents of the backbuffer on the screen.
 			 
-				bf.show();	// Shows the contents of the backbuffer on the screen.
-		 
-		        Toolkit.getDefaultToolkit().sync();	//Tell the System to do the Drawing now, otherwise it can take a few extra ms until drawing is done which looks very jerky
+			        Toolkit.getDefaultToolkit().sync();	//Tell the System to do the Drawing now, otherwise it can take a few extra ms until drawing is done which looks very jerky
+				}
+				
 			} while (currentWinXNum <= building.getNumWinX() || lastMiniMoveUp);
 			
 			moveDown = false;

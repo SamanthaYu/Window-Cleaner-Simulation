@@ -56,8 +56,8 @@ public class SuctionCups {
 		scupsDiameter = 30;
 		scupsDisplacement = 2;
 		
-		scupsOnColor = new Color(170,57,57);		// Green
-		scupsReleasedColor = new Color(64,142,47);	// Orange
+		scupsOnColor = new Color(170,57,57);		// Red
+		scupsReleasedColor = new Color(17,102,17);	// Green
 		armsColor = new Color(0,0,0);
 		
 		armStrokeSize = 2;

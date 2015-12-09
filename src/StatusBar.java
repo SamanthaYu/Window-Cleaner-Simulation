@@ -44,7 +44,7 @@ public class StatusBar {
 		valueArray = new ArrayList<String>();
 		
 		headingArray.add("Window Cleaner Speed: ");
-		valueArray.add("10 m/s");
+		valueArray.add("0.1 m/s");
 		
 		headingArray.add("Number of Window Columns: ");
 		valueArray.add(String.valueOf(building.getNumWinX()));
